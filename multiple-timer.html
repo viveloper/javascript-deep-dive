@@ -26,9 +26,12 @@
   <body>
     <header><h1>Multiple Timer</h1></header>
     <main>
+      <form class="input-form">
+        <input type="text" name="timer-name" />
+        <button type="submit" id="add-timer">Add Timer</button>
+      </form>
       <ul class="timer-list"></ul>
       <div class="global-controller">
-        <button id="add-timer">Add Timer</button>
         <button id="global-start">Start all</button>
         <button id="global-pause">Pause all</button>
         <button id="global-reset">Reset all</button>
@@ -44,23 +47,37 @@
 
         const timerListEl = document.querySelector('.timer-list');
 
+        const inputFormEl = document.querySelector('.input-form');
         const addTimerBtnEl = document.querySelector('#add-timer');
         const globalStartBtnEl = document.querySelector('#global-start');
         const globalPauseBtnEl = document.querySelector('#global-pause');
         const globalResetBtnEl = document.querySelector('#global-reset');
         const globalDeleteBtnEl = document.querySelector('#global-delete');
 
-        addTimerBtnEl.addEventListener('click', addTimer);
+        // addTimerBtnEl.addEventListener('click', addTimer);
+        inputFormEl.addEventListener('submit', onSubmit);
 
         globalStartBtnEl.addEventListener('click', startAll);
         globalPauseBtnEl.addEventListener('click', pauseAll);
         globalResetBtnEl.addEventListener('click', resetAll);
         globalDeleteBtnEl.addEventListener('click', deleteAll);
 
-        function addTimer() {
+        function onSubmit(e) {
+          e.preventDefault();
+          const timerNameInputEl = e.target.querySelector(
+            'input[name=timer-name]'
+          );
+          const timerName = timerNameInputEl.value;
+          if (timerName) {
+            addTimer(timerName);
+          }
+          timerNameInputEl.value = '';
+        }
+
+        function addTimer(timerName) {
           const { timerEl, onStart, onPause, onReset, onDelete } = createTimer({
             timerId,
-            timerName: timerId,
+            timerName,
           });
           timerListEl.appendChild(timerEl);
           timerMap[timerId] = { onStart, onPause, onReset, onDelete };
@@ -104,6 +121,7 @@
           timerEl.id = timerId;
 
           const nameEl = document.createElement('span');
+          nameEl.className = 'timer-name';
           nameEl.textContent = timerName;
           timerEl.appendChild(nameEl);
 
@@ -114,26 +132,35 @@
           const controllerEl = document.createElement('div');
           controllerEl.className = 'controller';
 
-          const pauseBtnEl = document.createElement('button');
-          pauseBtnEl.textContent = 'Pause';
-          pauseBtnEl.addEventListener('click', onPause);
-
           const startBtnEl = document.createElement('button');
           startBtnEl.textContent = 'Start';
           startBtnEl.addEventListener('click', onStart);
+          controllerEl.appendChild(startBtnEl);
+
+          const pauseBtnEl = document.createElement('button');
+          pauseBtnEl.textContent = 'Pause';
+          pauseBtnEl.addEventListener('click', onPause);
+          controllerEl.appendChild(pauseBtnEl);
 
           const resetBtnEl = document.createElement('button');
           resetBtnEl.textContent = 'Reset';
           resetBtnEl.addEventListener('click', onReset);
+          controllerEl.appendChild(resetBtnEl);
 
           const deleteBtnEl = document.createElement('button');
           deleteBtnEl.textContent = 'Delete';
           deleteBtnEl.addEventListener('click', onDelete);
-
-          controllerEl.appendChild(pauseBtnEl);
-          controllerEl.appendChild(startBtnEl);
-          controllerEl.appendChild(resetBtnEl);
           controllerEl.appendChild(deleteBtnEl);
+
+          const upBtnEl = document.createElement('button');
+          upBtnEl.textContent = 'Up';
+          upBtnEl.addEventListener('click', onUp);
+          controllerEl.appendChild(upBtnEl);
+
+          const downBtnEl = document.createElement('button');
+          downBtnEl.textContent = 'Down';
+          downBtnEl.addEventListener('click', onDown);
+          controllerEl.appendChild(downBtnEl);
 
           timerEl.appendChild(controllerEl);
 
@@ -157,6 +184,20 @@
           function onDelete() {
             clearInterval(interval);
             timerListEl.removeChild(timerEl);
+          }
+
+          function onUp() {
+            const prevTimerEl = timerEl.previousElementSibling;
+            if (prevTimerEl) {
+              timerListEl.insertBefore(timerEl, prevTimerEl);
+            }
+          }
+
+          function onDown() {
+            const nextTimerEl = timerEl.nextElementSibling;
+            if (nextTimerEl) {
+              timerListEl.insertBefore(nextTimerEl, timerEl);
+            }
           }
 
           return { timerEl, onStart, onPause, onReset, onDelete };
