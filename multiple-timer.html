@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      .timer-list {
+        list-style: none;
+        padding-left: 0;
+      }
+
+      .timer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <header><h1>Multiple Timer</h1></header>
+    <main>
+      <ul class="timer-list"></ul>
+      <div class="global-controller">
+        <button id="add-timer">Add Timer</button>
+        <button id="global-start">Start all</button>
+        <button id="global-pause">Pause all</button>
+        <button id="global-reset">Reset all</button>
+        <button id="global-delete">Delete all</button>
+      </div>
+    </main>
+    <script>
+      (function () {
+        'use strict';
+
+        let timerId = 1;
+        const timerMap = {};
+
+        const timerListEl = document.querySelector('.timer-list');
+
+        const addTimerBtnEl = document.querySelector('#add-timer');
+        const globalStartBtnEl = document.querySelector('#global-start');
+        const globalPauseBtnEl = document.querySelector('#global-pause');
+        const globalResetBtnEl = document.querySelector('#global-reset');
+        const globalDeleteBtnEl = document.querySelector('#global-delete');
+
+        addTimerBtnEl.addEventListener('click', addTimer);
+
+        globalStartBtnEl.addEventListener('click', startAll);
+        globalPauseBtnEl.addEventListener('click', pauseAll);
+        globalResetBtnEl.addEventListener('click', resetAll);
+        globalDeleteBtnEl.addEventListener('click', deleteAll);
+
+        function addTimer() {
+          const { timerEl, onStart, onPause, onReset, onDelete } = createTimer({
+            timerId,
+            timerName: timerId,
+          });
+          timerListEl.appendChild(timerEl);
+          timerMap[timerId] = { onStart, onPause, onReset, onDelete };
+          timerId++;
+        }
+
+        function startAll() {
+          const keys = Object.keys(timerMap);
+          keys.forEach((key) => {
+            timerMap[key].onStart();
+          });
+        }
+
+        function pauseAll() {
+          const keys = Object.keys(timerMap);
+          keys.forEach((key) => {
+            timerMap[key].onPause();
+          });
+        }
+
+        function resetAll() {
+          const keys = Object.keys(timerMap);
+          keys.forEach((key) => {
+            timerMap[key].onReset();
+          });
+        }
+
+        function deleteAll() {
+          const keys = Object.keys(timerMap);
+          keys.forEach((key) => {
+            timerMap[key].onDelete();
+          });
+        }
+
+        function createTimer({ timerId, timerName }) {
+          let count = 0;
+          let interval = null;
+
+          const timerEl = document.createElement('li');
+          timerEl.className = 'timer';
+          timerEl.id = timerId;
+
+          const nameEl = document.createElement('span');
+          nameEl.textContent = timerName;
+          timerEl.appendChild(nameEl);
+
+          const countEl = document.createElement('span');
+          countEl.textContent = count;
+          timerEl.appendChild(countEl);
+
+          const controllerEl = document.createElement('div');
+          controllerEl.className = 'controller';
+
+          const pauseBtnEl = document.createElement('button');
+          pauseBtnEl.textContent = 'Pause';
+          pauseBtnEl.addEventListener('click', onPause);
+
+          const startBtnEl = document.createElement('button');
+          startBtnEl.textContent = 'Start';
+          startBtnEl.addEventListener('click', onStart);
+
+          const resetBtnEl = document.createElement('button');
+          resetBtnEl.textContent = 'Reset';
+          resetBtnEl.addEventListener('click', onReset);
+
+          const deleteBtnEl = document.createElement('button');
+          deleteBtnEl.textContent = 'Delete';
+          deleteBtnEl.addEventListener('click', onDelete);
+
+          controllerEl.appendChild(pauseBtnEl);
+          controllerEl.appendChild(startBtnEl);
+          controllerEl.appendChild(resetBtnEl);
+          controllerEl.appendChild(deleteBtnEl);
+
+          timerEl.appendChild(controllerEl);
+
+          function onStart() {
+            interval = setInterval(() => {
+              count++;
+              countEl.textContent = count;
+            }, 1000);
+          }
+
+          function onPause() {
+            clearInterval(interval);
+          }
+
+          function onReset() {
+            clearInterval(interval);
+            count = 0;
+            countEl.textContent = count;
+          }
+
+          function onDelete() {
+            clearInterval(interval);
+            timerListEl.removeChild(timerEl);
+          }
+
+          return { timerEl, onStart, onPause, onReset, onDelete };
+        }
+      })();
+    </script>
+  </body>
+</html>
